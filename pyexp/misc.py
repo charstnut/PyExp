@@ -20,8 +20,9 @@ def cluster(pts, eps):
             dist = pts - center
             dist = np.linalg.norm(
                 dist, axis=1)  # Calculate distance from other points
-            cluster = pts[dist < eps]  # Select potential clustered points
-            center_new = np.average(cluster, axis=0)  # Determine new center
+            cluster_pts = pts[dist < eps]  # Select potential clustered points
+            center_new = np.average(cluster_pts,
+                                    axis=0)  # Determine new center
 
             if (center_new == center).all or (
                     cap > 50):  # terminate if the center point is not changing
