@@ -1,14 +1,21 @@
 # pyexp
-Common processing functions, such as calculating weighted averages, error propagation with `uncertainties`, etc., should be implemented in separate utility files (modules). A list of files and their purposes are as following:
+This is a personal utility library and fitting framework built on `lmfit` and `scipy`. The goal is to put a bunch of common experimental analysis routines into a package, and possibly extend it with `Julia`. 
+Common processing functions, such as calculating weighted averages, error propagation with `uncertainties`, etc., should be implemented in separate utility files (modules). 
 
+Library structure [under package root `pyexp`]:
+- fits
+    - Fast fitting a model of choice (note: this is essentially a wrapper around scipy.optimize package) for non-histogram fits
+    - A skeleton for histogram fits (binned and unbinned likelihood fits with proper error analysis and chi_2 test)
+    - (If possible) Abstraction for MCMC utilities and framework
+- tests
+    - demonstrations and tests
+- `utils.py`
+    - misc utility functions including drawing graphs, etc.
 - `misc.py`
     - Other functions (e.g. self-implemented clustering)
 - `avg.py`
     - Averaging related functions
-- `fastfit.py`
-    - Fast fitting a model of choice (note: this is essentially a wrapper around scipy.optimize package) for non-histogram fits
-    - A skeleton for histogram fits (binned and unbinned likelihood fits with proper error analysis and chi_2 test)
-    - (If possible) Abstraction for MCMC utilities and framework
+
 
 # Usage
 Execute the module functions from python using the top-level 
