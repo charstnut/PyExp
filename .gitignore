@@ -171,3 +171,6 @@ dmypy.json
 ### IDE Specific
 .vscode/
 .devcontainer/
+
+# Extras:
+images/
