@@ -1,8 +1,8 @@
 from lmfit.minimizer import MinimizerResult
+from numpy.testing._private.utils import assert_almost_equal
 from pyexp import VCS_DIR
 import pyexp.utils as utils
 import os
-from copy import deepcopy
 from typing import Tuple, Union, List
 
 IMG_DIR = os.path.join(VCS_DIR, 'images')
@@ -10,7 +10,7 @@ utils.initialize_dir(IMG_DIR)
 utils.set_figure_style()
 
 import numpy as np
-from scipy import optimize
+from scipy import integrate
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.figure import Figure
@@ -18,31 +18,66 @@ from matplotlib.axes import Axes
 from lmfit import Parameter, Parameters, Minimizer, fit_report
 
 ### Prepare model and data: assuming validity of gaussian errors
-# Data mimicking measurement and uncertainties [6.1(d)]
+# Assumes a time series of exponential decay model
 
 
 def model(x: np.ndarray, pars: Parameters) -> np.ndarray:
-    m: float = pars["slope"].value
-    b: float = pars["intercept"].value
-    return m * x + b
+    a1 = pars["a1"].value
+    a2 = pars["a2"].value
+    t1: float = pars["t1"].value
+    t2: float = pars["t2"].value
+    return a1 * np.exp(x / t1) + a2 * np.exp(x / t2)
+
+
+# Generates truth data using ode solver
+import sympy
+sympy.init_printing()
+y = sympy.symbols('y_0:%d' % 2)
+t = sympy.symbols('t')
+a, b, c, d = sympy.symbols('a b c d')
+matrix = sympy.Matrix([[a, b], [c, d]])
+f = matrix * sympy.Matrix(y)
+f_jac = f.jacobian(y)
+f_lamb = sympy.lambdify([t, y, (a, b, c, d)], f)
+f_jac_lamb = sympy.lambdify([t, y, (a, b, c, d)], f_jac)
+
+
+def dydt(t, y, a, b, c, d):
+    return f_lamb(t, y, (a, b, c, d)).flatten()
+
+
+def dydt_jac(t, y, a, b, c, d):
+    return f_jac_lamb(t, y, (a, b, c, d))
+
+
+params_truth = Parameters()
+params_truth.add("a", 2.0)
+params_truth.add("b", -3.0)
+params_truth.add("c", -3.0)
+params_truth.add("d", -1.0)
+p = tuple([params_truth[pars].value for pars in params_truth])
 
 
 def generate_data(x) -> np.ndarray:
     # Convenience function
 
-    params_truth = Parameters()
-    params_truth.add("slope", value=2.0)
-    params_truth.add("intercept", value=0.4)
-    x_err = np.random.normal(loc=0, scale=1, size=x.size)
-    return model(x, params_truth) + x_err
+    sol = integrate.solve_ivp(dydt, (x[0], x[-1]),
+                              y0=np.array([2, 3]),
+                              t_eval=x,
+                              jac=dydt_jac,
+                              args=p)
+    y = sol.y[0, :] + np.random.normal(0, 0.01, size=sol.y[0, :].size)
+    return y
 
 
 params = Parameters()
-params.add("slope", 0.5)
-params.add("intercept", 10)
-x_data = np.linspace(15, 100, 50)  # in Hz
+params.add("a1", 0.5)
+params.add("a2", 0.5)
+params.add("t1", -0.5)
+params.add("t2", 0.5)
+x_data = np.linspace(0, 0.5, 100)  # in Hz
 y_data = generate_data(x_data)
-y_err = np.ones_like(y_data) * 1.0
+y_err = np.ones_like(y_data) * 0.01
 
 
 def residual(pars: Parameters,
@@ -76,54 +111,20 @@ if not mini_result2.success:
 print("-" * 50)
 print(fit_report(mini_result2))
 
-### Estimate the error using analytical formulas:
+### Find the exact solution for a1, a2, t1, t2
+P, D = matrix.evalf(subs=dict(params_truth)).diagonalize(normalize=True)
+tau_truth = []
+for i in range(len(D.row(0))):
+    tau_truth.append(1 / D[i, i])
 
-d = len(x_data) * (x_data**2).sum() - (x_data.sum())**2
-intercept = ((x_data**2).sum() * y_data.sum() - x_data.sum() *
-             (x_data * y_data).sum()) / d
-slope = (len(x_data) *
-         (x_data * y_data).sum() - x_data.sum() * y_data.sum()) / d
+id = np.argsort(tau_truth)
+tau_test = [mini_result.params["t1"].value, mini_result.params["t2"].value]
+assert_almost_equal(np.array(tau_truth)[id], tau_test, decimal=1)
 
-intercept_err = np.sqrt(mini_result.redchi) * np.sqrt((x_data**2).sum() / d)
-slope_err = np.sqrt(mini_result.redchi) * np.sqrt(len(x_data) / d)
-
-print("Analytical slope: {} +/- {}".format(slope, slope_err))
-print("Analytical intercept: {} +/- {}".format(intercept, intercept_err))
-
-### Estimating the error according to measurement and uncertainties (book)
-# This is the same as error estimation as in covariance matrix if we turn scale_covar off
-# If the redchi2 stat is too large or small, we should turn scale_covar to off
-
-# best_params_cp = deepcopy(mini_result.params)
-
-# def delta_chi2(delta_h, var_name, current_params, origin_result, delta=1):
-#     # Finds the change in chi2 for a specific parameter, given some minimization result
-#     tmp_params = deepcopy(current_params)
-#     tmp_params[var_name].set(tmp_params[var_name].value + delta_h)
-#     resid = residual(tmp_params, x_data, y_data, y_err)
-#     delta_chi2 = (resid * resid).sum() - origin_result.chisqr
-#     return delta_chi2 - delta
-
-# for i in range(10):
-#     sol = optimize.root_scalar(delta_chi2,
-#                                args=("intercept", best_params_cp, mini_result),
-#                                x0=mini_result.params["intercept"].stderr,
-#                                x1=mini_result.params["intercept"].stderr / 2)
-
-#     print(sol.root)
-#     best_params_cp["intercept"].set(best_params_cp["intercept"].value +
-#                                     sol.root)
-#     best_params_cp.pretty_print()
-#     best_params_cp["intercept"].set(vary=False)
-#     tmp_mini = Minimizer(residual,
-#                          best_params_cp,
-#                          fcn_args=(x_data, y_data, y_err))
-#     tmp_mini_result = tmp_mini.least_squares()
-#     # print(fit_report(tmp_mini_result))
-#     best_params_cp = tmp_mini_result.params
-
-# print(best_params_cp["intercept"].value -
-#       mini_result.params["intercept"].value)
+A = P.T * np.array([[2, 3]]).T
+A_truth = [(A[i] * P.col(i))[0] for i in range(len(D.row(0)))]
+A_test = [mini_result.params["a1"].value, mini_result.params["a2"].value]
+assert_almost_equal(np.array(A_truth)[id], A_test, decimal=1)
 
 ### Plots the fit results
 
@@ -153,7 +154,7 @@ fig, ax = plt.subplots()
 fig.suptitle("")
 title = "Name of The Axes"
 ax.set_title(title)
-ax = plot_errorbar(ax, x_data, y_data, y_err)
+ax = plot_errorbar(ax, x_data, y_data, None)
 ax = plot_fit(ax, x_data, mini_result)
 
 # Plots residual
