@@ -50,7 +50,7 @@ def save_fig(fig: Figure, image_dir: str, title: str = None) -> None:
     plt.close(fig)
 
 
-def initialize_dir(path_name: str) -> bool:
+def initialize_dir(path_name: str) -> None:
     # Initialize a directory
 
     if not os.path.isdir(path_name):
@@ -61,10 +61,8 @@ def initialize_dir(path_name: str) -> bool:
         except:
             print("Unexpected error:", sys.exc_info()[0])
             raise
-        return True
     else:
         print("Target directory already exists.")
-        return True
 
 
 def sample_plot() -> Tuple[Figure, Union[Axes, List[Axes]]]:
