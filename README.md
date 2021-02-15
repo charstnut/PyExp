@@ -8,13 +8,15 @@ Library structure [under package root `pyexp`]:
     - A skeleton for histogram fits (binned and unbinned likelihood fits with proper error analysis and chi_2 test)
     - (If possible) Abstraction for MCMC utilities and framework
 - tests
-    - demonstrations and tests
+    - tests
 - `utils.py`
     - misc utility functions including drawing graphs, etc.
 - `misc.py`
     - Other functions (e.g. self-implemented clustering)
 - `avg.py`
     - Averaging related functions
+- `demo_*.py`
+    - Demonstration scripts
 
 
 # Usage
