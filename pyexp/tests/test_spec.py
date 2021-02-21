@@ -20,6 +20,7 @@ def box(t, t_max=1):
 
 
 def window2(t):
+    # Gaussian window
     return np.exp(-t**2)
 
 
@@ -40,7 +41,7 @@ def numerical_fourier(f, f_data: np.ndarray, limit=(-5.0, 5.0)) -> np.ndarray:
             limit[1],
             limit=100)
         result[i], err[i] = real + 1j * imag, real_err * 1j * imag_err
-    assert_allclose(err, 0, atol=5e-3)
+    assert_allclose(err, 0, atol=1e-4)
     return result
 
 
@@ -49,41 +50,42 @@ def numerical_fourier(f, f_data: np.ndarray, limit=(-5.0, 5.0)) -> np.ndarray:
 # Prepare the mathematical FT of an analytical function f
 # DO NOT USE sympy for integration, it is absurdly slow...
 
-freq = 0.95
-a = 5.0
-phase = 0
-# f1 = lambda t: a * np.sin(2 * np.pi * freq * t + phase)
-f2 = lambda t: window2(t) * a * np.cos(2 * np.pi * freq * t + phase)
-n_samples = 256
-time_series_max = 2.5
-x_data = np.linspace(0, time_series_max, n_samples)
-y_data = f2(x_data)
+if __name__ == "__main__":
+    freq = 0.95
+    a = 5.0
+    phase = 0
+    # f1 = lambda t: a * np.sin(2 * np.pi * freq * t + phase)
+    f2 = lambda t: window2(t) * a * np.cos(2 * np.pi * freq * t + phase)
+    n_samples = 256
+    time_series_max = 2.5
+    x_data = np.linspace(0, time_series_max, n_samples)
+    y_data = f2(x_data)
 
-# plt.plot(x_data, y_data)
-# plt.show()
+    # plt.plot(x_data, y_data)
+    # plt.show()
 
-f_data = np.fft.fftfreq(n_samples, time_series_max / n_samples)
-f_data_r = np.fft.rfftfreq(n_samples, time_series_max / n_samples)
+    f_data = np.fft.fftfreq(n_samples, time_series_max / n_samples)
+    f_data_r = np.fft.rfftfreq(n_samples, time_series_max / n_samples)
 
-f1_ft_truth = numerical_fourier(f2, f_data, (0.0, time_series_max))
-# f2_ft_truth = numerical_fourier(f2, f_data, (-20, 20))
+    f1_ft_truth = numerical_fourier(f2, f_data, (0.0, time_series_max))
+    # f2_ft_truth = numerical_fourier(f2, f_data, (-20, 20))
 
-f1_ft_fft = np.fft.fft(y_data) * time_series_max / n_samples
-f1_ft_rfft = np.fft.rfft(y_data) * time_series_max / n_samples
+    f1_ft_fft = np.fft.fft(y_data) * time_series_max / n_samples
+    f1_ft_rfft = np.fft.rfft(y_data) * time_series_max / n_samples
 
-# scratch plotting
+    # scratch plotting
 
-fig: Figure
-fig, ax = plt.subplots()
-fig.suptitle("")
-title = "True FTs"
-ax.set_title(title)
-ax.plot(f_data, f1_ft_truth.real, label="sin FT real")
-ax.plot(f_data, f1_ft_truth.imag, label="sin FT imag")
-# ax.plot(f_data, f1_ft_fft.real, label="sin FFT real")
-# ax.plot(f_data, f1_ft_fft.imag, label="sin FFT imag")
-ax.plot(f_data_r, f1_ft_rfft.real, label="sin rFFT real")
-ax.plot(f_data_r, f1_ft_rfft.imag, label="sin rFFT imag")
+    fig: Figure
+    fig, ax = plt.subplots()
+    fig.suptitle("")
+    title = "True FTs"
+    ax.set_title(title)
+    ax.plot(f_data, f1_ft_truth.real, label="sin FT real")
+    ax.plot(f_data, f1_ft_truth.imag, label="sin FT imag")
+    # ax.plot(f_data, f1_ft_fft.real, label="sin FFT real")
+    # ax.plot(f_data, f1_ft_fft.imag, label="sin FFT imag")
+    ax.plot(f_data_r, f1_ft_rfft.real, label="sin rFFT real")
+    ax.plot(f_data_r, f1_ft_rfft.imag, label="sin rFFT imag")
 
-plt.legend()
-plt.show()
+    plt.legend()
+    plt.show()
