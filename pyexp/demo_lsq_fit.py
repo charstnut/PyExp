@@ -1,11 +1,11 @@
 from lmfit.minimizer import MinimizerResult
-from pyexp import VCS_DIR
-import pyexp.utils as utils
+import pyexp
+from . import utils
 import os
 from copy import deepcopy
 from typing import Tuple, Union, List
 
-IMG_DIR = os.path.join(VCS_DIR, 'images')
+IMG_DIR = os.path.join(pyexp.VCS_DIR, 'images')
 utils.initialize_dir(IMG_DIR)
 utils.set_figure_style()
 
