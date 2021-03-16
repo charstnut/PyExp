@@ -12,8 +12,14 @@ import matplotlib.pyplot as plt
 
 ### Generate a bunch of gaussian noise
 
-y_data = np.random.normal(0, 2, (100, 10000))
-y_data_psd = spec.psd(y_data, dt=1, total_time=y_data.shape[-1], axis=-1)
+y_data = np.random.normal(0, 3, (100, 5000))
+dt = 0.25
+total_time = y_data.shape[-1] * dt
+y_data_psd = spec.psd(y_data, dt=dt, total_time=total_time, axis=-1)
 freq = np.fft.rfftfreq(y_data.shape[-1])
-plt.plot(freq, np.mean(y_data_psd, axis=0))
+mean_psd = np.mean(y_data_psd, axis=0)
+plt.plot(freq, mean_psd)
+plt.title("RMS2: {}, total Power from FFT: {}".format(
+    sum(y_data[0]**2) / y_data.shape[-1],
+    sum(mean_psd) / (total_time) * 2))
 plt.show()
