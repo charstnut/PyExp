@@ -45,7 +45,7 @@ def save_fig(fig: Figure, image_dir: str, title: str = None) -> None:
         else:
             raise ValueError("title cannot be None")
     out_file = os.path.join(image_dir,
-                            title.replace(' ', '_').replace('.', '') + ".pdf")
+                            title.replace(' ', '_').replace('.', '-') + ".pdf")
     fig.savefig(out_file, bbox_inches='tight', dpi=300)
     plt.close(fig)
 
