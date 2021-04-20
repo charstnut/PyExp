@@ -3,7 +3,7 @@ import pyexp
 from . import utils
 import os
 from copy import deepcopy
-from typing import Tuple, Union, List
+# from typing import Tuple, Union, List
 
 IMG_DIR = os.path.join(pyexp.VCS_DIR, 'images')
 utils.initialize_dir(IMG_DIR)
