@@ -32,16 +32,16 @@ def check_aliasing(fs: float, decimation: int, LO: float):
             "Acquisition rate or simulation rate can cause aliasing.")
 
 
-f_LO = 1e4
-fs = 800  # actual sampling rate after the low-pass filter
-dec = 7
+f_LO = 1e3
+fs = 64e3  # actual sampling rate after the low-pass filter
+dec = 1
 fs_sim = fs * dec  # simulation sampling rate for discarding the high frequency components
 check_aliasing(fs, dec, f_LO)
 
 dt = 1 / fs_sim
 t = np.arange(0, 1, dt)  # 1 second
 s = np.cos((f_LO + 239.3) * 2 * np.pi * t)  # Signal
-s2 = np.exp(-t / 0.25) * np.sin(f_LO * 2 * np.pi * t)
+# s2 = np.exp(-t / 0.25) * np.sin(f_LO * 2 * np.pi * t)
 
 
 def mix_real(input_time: np.ndarray, input_signal: np.ndarray, LO_freq: float):
