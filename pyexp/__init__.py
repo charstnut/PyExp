@@ -12,5 +12,3 @@ VCS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 PKG_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 
 # sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'Package'))
-
-### Checks requirements [TODO]
