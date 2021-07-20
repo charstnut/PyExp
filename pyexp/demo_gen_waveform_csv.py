@@ -40,12 +40,14 @@ elif POINT_NUM > 12287 and POINT_NUM <= 16000:
 else:
     raise ValueError("Number of points is not allowed for the current AWG.")
 
-# fig: Figure
-# fig, ax = plt.subplots(1, 2, figsize=(20, 10))
-# fig.suptitle("")
-# env_fft = spec(envelope, 1 / fs)
-# ax[0].plot(spec_freq(envelope, 1 / fs), np.real(env_fft), label="Re")
-# ax[0].plot(spec_freq(envelope, 1 / fs), np.imag(env_fft), label="Im")
-# f, pxx_env = signal.periodogram(envelope, fs=fs, return_onesided=False)
-# ax[1].plot(f, pxx_env, label='Pxx')
-# plt.show()
+t = np.arange(POINT_NUM) * 1e-6
+signal = np.zeros_like(t)
+for (f, p, a) in zip(freqs, phases, amplitudes):
+    signal += a * np.sin(2 * np.pi * f * t + p)
+signal /= signal.max()
+
+fig: Figure
+fig, ax = plt.subplots(figsize=(10, 10))
+fig.suptitle("")
+ax.plot(t, signal, label="Sig.")
+plt.show()
