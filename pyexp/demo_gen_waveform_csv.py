@@ -13,6 +13,7 @@ utils.set_figure_style()
 
 # Regular import
 import numpy as np
+import pandas as pd
 from scipy import signal
 from numpy import fft
 import matplotlib.pyplot as plt
@@ -24,7 +25,7 @@ from matplotlib.figure import Figure
 # Assuming the waveform is a bunch of cosine waves with frequencies [f1, f2, ...]
 # phases [phi1, phi2, ...]
 # and amplitudes [amp1, amp2, ...]
-freqs = np.linspace(16e3, 31e3, 5)
+freqs = np.linspace(90e5, 200e5, 5)
 phases = np.linspace(0, np.pi, 5)
 amplitudes = np.linspace(1e-3, 4.2e-3, 5)
 
@@ -40,14 +41,40 @@ elif POINT_NUM > 12287 and POINT_NUM <= 16000:
 else:
     raise ValueError("Number of points is not allowed for the current AWG.")
 
-t = np.arange(POINT_NUM) * 1e-6
-signal = np.zeros_like(t)
-for (f, p, a) in zip(freqs, phases, amplitudes):
-    signal += a * np.sin(2 * np.pi * f * t + p)
-signal /= signal.max()
+f_max = freqs.max()
+fs_min = 2 * f_max  # sampling rate is at least twice is maximum frequency component
+fs = 10 * f_max  # recommended sampling rate
+if fs < fs_min:
+    raise ValueError(
+        "Insufficient sampling rate for current signal bandwidth.")
+Dt = POINT_NUM / fs  # dt * N = 1/fs * N is the segment time length
+f_sig = 1 / Dt  # f_sig is the repetition frequency
+if f_sig > MAX_FREQ:
+    raise ValueError(
+        "Repetition frequency exceeds limit, consider lowering signal bandwidth."
+    )
 
-fig: Figure
-fig, ax = plt.subplots(figsize=(10, 10))
-fig.suptitle("")
-ax.plot(t, signal, label="Sig.")
-plt.show()
+t = np.linspace(0, Dt - 1 / fs, POINT_NUM)
+sig = np.zeros_like(t)
+for (f, p, a) in zip(freqs, phases, amplitudes):
+    sig += a * np.sin(2 * np.pi * f * t + p)
+sig /= sig.max()
+
+window = signal.windows.hann(POINT_NUM)
+sig *= window
+
+# fig: Figure
+# fig, ax = plt.subplots(figsize=(10, 10))
+# fig.suptitle("")
+# ax.plot(np.fft.rfftfreq(len(t), 1 / fs),
+#         np.abs(np.fft.rfft(sig)),
+#         label="Sig.")
+# ax.legend()
+# plt.show()
+
+file = os.path.join(OUTPUT_DIR, "out.csv")
+df = pd.DataFrame()
+df["Data"] = sig
+df["Name"] = "VOLATILE"
+df["Freq (Hz)"] = round(f_sig)
+df.to_csv(file, index=False)

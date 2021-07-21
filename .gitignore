@@ -174,3 +174,4 @@ dmypy.json
 
 # Extras:
 images/
+outputs/
