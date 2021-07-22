@@ -25,12 +25,12 @@ from matplotlib.figure import Figure
 # Assuming the waveform is a bunch of cosine waves with frequencies [f1, f2, ...]
 # phases [phi1, phi2, ...]
 # and amplitudes [amp1, amp2, ...]
-freqs = np.linspace(90e5, 200e5, 5)
+freqs = np.linspace(9e5, 20e5, 5)
 phases = np.linspace(0, np.pi, 5)
 amplitudes = np.linspace(1e-3, 4.2e-3, 5)
 
 # Specifications of the AWG
-POINT_NUM: int = 8000  # By default the number of points in the waveform is 8000
+POINT_NUM: int = 16000  # By default the number of points in the waveform is 8000
 MIN_FREQ = 100e-6  # 100 uHz
 if POINT_NUM > 8 and POINT_NUM <= 8192:
     MAX_FREQ = 5e6  # 5MHz
@@ -43,7 +43,7 @@ else:
 
 f_max = freqs.max()
 fs_min = 2 * f_max  # sampling rate is at least twice is maximum frequency component
-fs = 10 * f_max  # recommended sampling rate
+fs = 100 * f_max  # recommended sampling rate
 if fs < fs_min:
     raise ValueError(
         "Insufficient sampling rate for current signal bandwidth.")
@@ -63,18 +63,22 @@ sig /= sig.max()
 window = signal.windows.hann(POINT_NUM)
 sig *= window
 
-# fig: Figure
-# fig, ax = plt.subplots(figsize=(10, 10))
-# fig.suptitle("")
+fig: Figure
+fig, ax = plt.subplots(figsize=(10, 10))
+fig.suptitle("")
 # ax.plot(np.fft.rfftfreq(len(t), 1 / fs),
 #         np.abs(np.fft.rfft(sig)),
 #         label="Sig.")
-# ax.legend()
-# plt.show()
+ax.plot(t, sig, label="Sig.")
+ax.legend()
+plt.show()
 
 file = os.path.join(OUTPUT_DIR, "out.csv")
 df = pd.DataFrame()
 df["Data"] = sig
 df["Name"] = "VOLATILE"
-df["Freq (Hz)"] = round(f_sig)
-df.to_csv(file, index=False)
+df["Freq (kHz)"] = round(f_sig) / 1e3
+df["Ampl (VPP)"] = 0.1
+df["Offset (VDC)"] = 0
+df["Points"] = POINT_NUM
+df.to_csv(file, float_format='%.10f', index=False)
