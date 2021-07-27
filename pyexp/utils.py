@@ -1,7 +1,7 @@
 ### Utility functions
 # For type checking
 from __future__ import annotations
-import os
+from pathlib import Path
 import sys
 from typing import Tuple, Union, List
 
@@ -53,11 +53,11 @@ def save_fig(fig: Figure, image_dir: str, title: str = None) -> None:
 def initialize_dir(path_name: str) -> None:
     # Initialize a directory
 
-    if not os.path.isdir(path_name):
-        print("Creating target [.../{}] directory... ".format(
-            os.path.split(path_name)[-1]))
+    p = Path(path_name)
+    if not p.is_dir():
+        print("Creating target [.../{}] directory... ".format(p.parts[-1]))
         try:
-            os.mkdir(path_name)
+            p.mkdir(parents=True)
         except:
             print("Unexpected error:", sys.exc_info()[0])
             raise
