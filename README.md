@@ -7,8 +7,6 @@ Library structure [under package root `pyexp`]:
     - Fast fitting a model of choice (note: this is essentially a wrapper around scipy.optimize package) for non-histogram fits
     - A skeleton for histogram fits (binned and unbinned likelihood fits with proper error analysis and chi_2 test)
     - (If possible) Abstraction for MCMC utilities and framework
-- tests
-    - tests
 - `utils.py`
     - misc utility functions including drawing graphs, etc.
 - `misc.py`
