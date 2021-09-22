@@ -1,6 +1,5 @@
 # pyexp
-This is a personal utility library and fitting framework built on `lmfit` and `scipy`. The goal is to put a bunch of common experimental analysis routines into a package, and possibly extend it with `Julia`. 
-Common processing functions, such as calculating weighted averages, error propagation with `uncertainties`, etc., should be implemented in separate utility files (modules). 
+This is a personal utility library and fitting playground built on `lmfit` and `scipy`. The goal is to put a bunch of common experimental analysis routines into a package, and possibly extend it with `Julia`. 
 
 Library structure [under package root `pyexp`]:
 - fits
@@ -13,8 +12,8 @@ Library structure [under package root `pyexp`]:
     - Other functions (e.g. self-implemented clustering)
 - `avg.py`
     - Averaging related functions
-- `demo_*.py`
-    - Demonstration scripts
+
+Demonstration files are organized in jupyter notebooks.
 
 
 # Usage
